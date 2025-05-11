@@ -1,0 +1,26 @@
+{
+    "created_date": "2025-05-11T11:59:42.013868",
+    "data_sources": [
+        "OECD 2024",
+        "Mental Health Survey 2014",
+        "Mental Health Survey 2016"
+    ],
+    "processing_steps": [
+        "Column standardization",
+        "Missing value imputation",
+        "Data type conversion",
+        "Feature engineering",
+        "Country-level aggregation"
+    ],
+    "validation_results": {
+        "missing_values": {
+            "2014_gender": 12,
+            "2016_what_is_your_gender": 12
+        },
+        "invalid_ages": {
+            "2014": 42,
+            "2016": 42
+        },
+        "invalid_benefit_rates": 33
+    }
+}

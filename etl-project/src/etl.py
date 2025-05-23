@@ -263,25 +263,28 @@ def transform_surveys(df_2014, df_2016, df_2025):
     df_2016['country'] = df_2016['country'].replace(country_mapping)
     df_2025['country'] = df_2025['country'].replace(country_mapping)
 
-
-
     # --- Standardize Gender Columns ---
-    gender_mapping = {
-        'female': 'Female',
-        'male': 'Male',
-        'f': 'Female',
-        'm': 'Male',
-        'woman': 'Female',
-        'man': 'Male',
-        'cis female': 'Female',
-        'cis male': 'Male',
-        'trans female': 'Other',
-        'trans male': 'Other'
-    }
+    def clean_gender(gender):
+        if pd.isna(gender):
+            return 'Other'
+            
+        gender = str(gender).strip().lower()
+        
+        # Female variations
+        if any(x in gender for x in ['female', 'f', 'woman', 'fem', 'cis female', 'mtf', 'm2f']):
+            return 'Female'
+            
+        # Male variations
+        elif any(x in gender for x in ['male', 'm', 'man', 'cis male', 'ftm', 'f2m']):
+            return 'Male'
+            
+        # Non-binary/other
+        else:
+            return 'Other'
 
-    df_2014['gender'] = df_2014['gender'].replace(gender_mapping, regex=True).fillna('Other')
-    df_2016['gender'] = df_2016['gender'].replace(gender_mapping, regex=True).fillna('Other')
-    df_2025['gender'] = df_2025['gender'].replace(gender_mapping, regex=True).fillna('Other')
+    df_2014['gender'] = df_2014['gender'].apply(clean_gender)
+    df_2016['gender'] = df_2016['gender'].apply(clean_gender)
+    df_2025['gender'] = df_2025['gender'].apply(clean_gender)
 
     # --- Map work_interfere to numeric scale (2014 and 2025 only) ---
     interfere_map = {
@@ -296,20 +299,17 @@ def transform_surveys(df_2014, df_2016, df_2025):
     df_2025['mh_impact_score'] = df_2025['work_interfere'].map(interfere_map)
 
     # --- Create has_benefits flag for 2016 survey ---
-    df_2016['benefits'] = df_2016[
-        'benefits'
-    ].map({
+    benefits_map = {
         'Yes': 1,
         'No': 0,
         'I don\'t know': 0,
         'Not eligible for coverage / N/A': 0
-    })
-
-
-
+    }
+    
+    if 'benefits' in df_2016.columns:
+        df_2016['benefits'] = df_2016['benefits'].map(benefits_map).fillna(0)
 
     return df_2014, df_2016, df_2025
-
 # Step 4: Data Integration Function
 def merge_all_surveys(df_2014, df_2016, df_2025):
     """

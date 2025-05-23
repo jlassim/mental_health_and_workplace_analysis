@@ -78,9 +78,8 @@ def clean_survey_2014(df_2014):
     return df_2014
 
 def clean_survey_2016(df_2016):
-    """Clean 2016 survey data"""
     # Standardize column names
-    df_2016.columns = df_2016.columns.str.lower().str.replace(' ', '_').str.replace('?', '').str.replace('/', '_')
+    df_2016.columns = df_2016.columns.str.lower().str.replace(' ', '_').str.replace('?', '', regex=False).str.replace('/', '_')
 
     # Handle missing values for key columns
     df_2016['how_many_employees_does_your_company_or_organization_have'].fillna('Unknown', inplace=True)
@@ -95,8 +94,80 @@ def clean_survey_2016(df_2016):
     df_2016['what_is_your_age'] = pd.to_numeric(df_2016['what_is_your_age'], errors='coerce')
     df_2016['what_is_your_age'] = df_2016['what_is_your_age'].apply(lambda x: x if 18 <= x <= 100 else np.nan)
     df_2016['what_is_your_age'].fillna(df_2016['what_is_your_age'].median(), inplace=True)
-    
+
+    # Apply the column name mapping
+    column_mapping = {
+        'Are you self-employed?': 'self_employed',
+        'How many employees does your company or organization have?': 'no_employees',
+        'Is your employer primarily a tech company/organization?': 'tech_company',
+        'Is your primary role within your company related to tech/IT?': 'tech_role',
+        'Does your employer provide mental health benefits as part of healthcare coverage?': 'benefits',
+        'Do you know the options for mental health care available under your employer-provided coverage?': 'care_options',
+        'Has your employer ever formally discussed mental health (for example, as part of a wellness campaign or other official communication)?': 'wellness_program',
+        'Does your employer offer resources to learn more about mental health concerns and options for seeking help?': 'seek_help',
+        'Is your anonymity protected if you choose to take advantage of mental health or substance abuse treatment resources provided by your employer?': 'anonymity',
+        'If a mental health issue prompted you to request a medical leave from work, asking for that leave would be:': 'leave',
+        'Do you think that discussing a mental health disorder with your employer would have negative consequences?': 'mental_health_consequence',
+        'Do you think that discussing a physical health issue with your employer would have negative consequences?': 'phys_health_consequence',
+        'Would you feel comfortable discussing a mental health disorder with your coworkers?': 'coworkers',
+        'Would you feel comfortable discussing a mental health disorder with your direct supervisor(s)?': 'supervisor',
+        'Do you feel that your employer takes mental health as seriously as physical health?': 'mental_vs_physical',
+        'Have you heard of or observed negative consequences for co-workers who have been open about mental health issues in your workplace?': 'obs_consequence',
+        'Do you have medical coverage (private insurance or state-provided) which includes treatment of mental health issues?': 'medical_coverage',
+        'Do you know local or online resources to seek help for a mental health disorder?': 'know_resources',
+        'If you have been diagnosed or treated for a mental health disorder, do you ever reveal this to clients or business contacts?': 'reveal_to_clients',
+        'If you have revealed a mental health issue to a client or business contact, do you believe this has impacted you negatively?': 'client_impact',
+        'If you have been diagnosed or treated for a mental health disorder, do you ever reveal this to coworkers or employees?': 'reveal_to_coworkers',
+        'If you have revealed a mental health issue to a coworker or employee, do you believe this has impacted you negatively?': 'coworker_impact',
+        'Do you believe your productivity is ever affected by a mental health issue?': 'productivity_affected',
+        'If yes, what percentage of your work time (time performing primary or secondary job functions) is affected by a mental health issue?': 'productivity_percentage',
+        'Do you have previous employers?': 'previous_employers',
+        'Have your previous employers provided mental health benefits?': 'prev_benefits',
+        'Were you aware of the options for mental health care provided by your previous employers?': 'prev_care_options',
+        'Did your previous employers ever formally discuss mental health (as part of a wellness campaign or other official communication)?': 'prev_wellness_program',
+        'Did your previous employers provide resources to learn more about mental health issues and how to seek help?': 'prev_seek_help',
+        'Was your anonymity protected if you chose to take advantage of mental health or substance abuse treatment resources with previous employers?': 'prev_anonymity',
+        'Do you think that discussing a mental health disorder with previous employers would have negative consequences?': 'prev_mental_health_consequence',
+        'Do you think that discussing a physical health issue with previous employers would have negative consequences?': 'prev_phys_health_consequence',
+        'Would you have been willing to discuss a mental health issue with your previous co-workers?': 'prev_coworkers',
+        'Would you have been willing to discuss a mental health issue with your direct supervisor(s)?': 'prev_supervisor',
+        'Did you feel that your previous employers took mental health as seriously as physical health?': 'prev_mental_vs_physical',
+        'Did you hear of or observe negative consequences for co-workers with mental health issues in your previous workplaces?': 'prev_obs_consequence',
+        'Would you be willing to bring up a physical health issue with a potential employer in an interview?': 'phys_health_interview',
+        'Why or why not?': 'phys_health_interview_why',
+        'Would you bring up a mental health issue with a potential employer in an interview?': 'mental_health_interview',
+        'Why or why not?': 'mental_health_interview_why',
+        'Do you feel that being identified as a person with a mental health issue would hurt your career?': 'career_impact',
+        'Do you think that team members/co-workers would view you more negatively if they knew you suffered from a mental health issue?': 'coworker_perception',
+        'How willing would you be to share with friends and family that you have a mental illness?': 'share_with_family',
+        'Have you observed or experienced an unsupportive or badly handled response to a mental health issue in your current or previous workplace?': 'bad_response_experience',
+        'Have your observations of how another individual who discussed a mental health disorder made you less likely to reveal a mental health issue yourself in your current workplace?': 'observation_impact',
+        'Do you have a family history of mental illness?': 'family_history',
+        'Have you had a mental health disorder in the past?': 'past_disorder',
+        'Do you currently have a mental health disorder?': 'current_disorder',
+        'If yes, what condition(s) have you been diagnosed with?': 'diagnosed_condition',
+        'If maybe, what condition(s) do you believe you have?': 'suspected_condition',
+        'Have you been diagnosed with a mental health condition by a medical professional?': 'professional_diagnosis',
+        'If so, what condition(s) were you diagnosed with?': 'professional_diagnosis_details',
+        'Have you ever sought treatment for a mental health issue from a mental health professional?': 'treatment',
+        'If you have a mental health issue, do you feel that it interferes with your work when being treated effectively?': 'treated_interference',
+        'If you have a mental health issue, do you feel that it interferes with your work when NOT being treated effectively?': 'untreated_interference',
+        'What is your age?': 'age',
+        'What is your gender?': 'gender',
+        'What country do you live in?': 'country',
+        'What US state or territory do you live in?': 'state',
+        'What country do you work in?': 'work_country',
+        'What US state or territory do you work in?': 'work_state',
+        'Which of the following best describes your work position?': 'position',
+        'Do you work remotely?': 'remote_work'
+    }
+
+    # Apply the column name normalization
+    df_2016 = df_2016.rename(columns={k.lower().replace(' ', '_').replace('?', '').replace('/', '_'): v for k, v in column_mapping.items()})
+
+
     return df_2016
+
 def clean_survey_2025(df_survey):
     """Clean 2025 mental health survey data to align with 2014 schema"""
     
@@ -189,11 +260,10 @@ def transform_surveys(df_2014, df_2016, df_2025):
     }
 
     df_2014['country'] = df_2014['country'].replace(country_mapping)
-    df_2016['what_country_do_you_live_in'] = df_2016['what_country_do_you_live_in'].replace(country_mapping)
+    df_2016['country'] = df_2016['country'].replace(country_mapping)
     df_2025['country'] = df_2025['country'].replace(country_mapping)
 
-    # --- Standardize Age Columns ---
-    df_2016 = df_2016.rename(columns={'what_is_your_age': 'age'})
+
 
     # --- Standardize Gender Columns ---
     gender_mapping = {
@@ -210,7 +280,7 @@ def transform_surveys(df_2014, df_2016, df_2025):
     }
 
     df_2014['gender'] = df_2014['gender'].replace(gender_mapping, regex=True).fillna('Other')
-    df_2016['what_is_your_gender'] = df_2016['what_is_your_gender'].replace(gender_mapping, regex=True).fillna('Other')
+    df_2016['gender'] = df_2016['gender'].replace(gender_mapping, regex=True).fillna('Other')
     df_2025['gender'] = df_2025['gender'].replace(gender_mapping, regex=True).fillna('Other')
 
     # --- Map work_interfere to numeric scale (2014 and 2025 only) ---
@@ -226,8 +296,8 @@ def transform_surveys(df_2014, df_2016, df_2025):
     df_2025['mh_impact_score'] = df_2025['work_interfere'].map(interfere_map)
 
     # --- Create has_benefits flag for 2016 survey ---
-    df_2016['has_benefits'] = df_2016[
-        'does_your_employer_provide_mental_health_benefits_as_part_of_healthcare_coverage'
+    df_2016['benefits'] = df_2016[
+        'benefits'
     ].map({
         'Yes': 1,
         'No': 0,
@@ -235,82 +305,8 @@ def transform_surveys(df_2014, df_2016, df_2025):
         'Not eligible for coverage / N/A': 0
     })
 
-    # --- Harmonize column names (optional, if you plan to concatenate) ---
-    df_2016.rename(columns={
-        'what_is_your_gender': 'gender',
-        'what_country_do_you_live_in': 'country'
-    }, inplace=True)
-    """Normalize all column names in the 2016 survey to lowercase with underscores"""
-    
-    # Create a comprehensive mapping for all 2016 columns
-    column_mapping = {
-        'Are you self-employed?': 'self_employed',
-        'How many employees does your company or organization have?': 'no_employees',
-        'Is your employer primarily a tech company/organization?': 'tech_company',
-        'Is your primary role within your company related to tech/IT?': 'tech_role',
-        'Does your employer provide mental health benefits as part of healthcare coverage?': 'benefits',
-        'Do you know the options for mental health care available under your employer-provided coverage?': 'care_options',
-        'Has your employer ever formally discussed mental health (for example, as part of a wellness campaign or other official communication)?': 'wellness_program',
-        'Does your employer offer resources to learn more about mental health concerns and options for seeking help?': 'seek_help',
-        'Is your anonymity protected if you choose to take advantage of mental health or substance abuse treatment resources provided by your employer?': 'anonymity',
-        'If a mental health issue prompted you to request a medical leave from work, asking for that leave would be:': 'leave',
-        'Do you think that discussing a mental health disorder with your employer would have negative consequences?': 'mental_health_consequence',
-        'Do you think that discussing a physical health issue with your employer would have negative consequences?': 'phys_health_consequence',
-        'Would you feel comfortable discussing a mental health disorder with your coworkers?': 'coworkers',
-        'Would you feel comfortable discussing a mental health disorder with your direct supervisor(s)?': 'supervisor',
-        'Do you feel that your employer takes mental health as seriously as physical health?': 'mental_vs_physical',
-        'Have you heard of or observed negative consequences for co-workers who have been open about mental health issues in your workplace?': 'obs_consequence',
-        'Do you have medical coverage (private insurance or state-provided) which includes treatment of mental health issues?': 'medical_coverage',
-        'Do you know local or online resources to seek help for a mental health disorder?': 'know_resources',
-        'If you have been diagnosed or treated for a mental health disorder, do you ever reveal this to clients or business contacts?': 'reveal_to_clients',
-        'If you have revealed a mental health issue to a client or business contact, do you believe this has impacted you negatively?': 'client_impact',
-        'If you have been diagnosed or treated for a mental health disorder, do you ever reveal this to coworkers or employees?': 'reveal_to_coworkers',
-        'If you have revealed a mental health issue to a coworker or employee, do you believe this has impacted you negatively?': 'coworker_impact',
-        'Do you believe your productivity is ever affected by a mental health issue?': 'productivity_affected',
-        'If yes, what percentage of your work time (time performing primary or secondary job functions) is affected by a mental health issue?': 'productivity_percentage',
-        'Do you have previous employers?': 'previous_employers',
-        'Have your previous employers provided mental health benefits?': 'prev_benefits',
-        'Were you aware of the options for mental health care provided by your previous employers?': 'prev_care_options',
-        'Did your previous employers ever formally discuss mental health (as part of a wellness campaign or other official communication)?': 'prev_wellness_program',
-        'Did your previous employers provide resources to learn more about mental health issues and how to seek help?': 'prev_seek_help',
-        'Was your anonymity protected if you chose to take advantage of mental health or substance abuse treatment resources with previous employers?': 'prev_anonymity',
-        'Do you think that discussing a mental health disorder with previous employers would have negative consequences?': 'prev_mental_health_consequence',
-        'Do you think that discussing a physical health issue with previous employers would have negative consequences?': 'prev_phys_health_consequence',
-        'Would you have been willing to discuss a mental health issue with your previous co-workers?': 'prev_coworkers',
-        'Would you have been willing to discuss a mental health issue with your direct supervisor(s)?': 'prev_supervisor',
-        'Did you feel that your previous employers took mental health as seriously as physical health?': 'prev_mental_vs_physical',
-        'Did you hear of or observe negative consequences for co-workers with mental health issues in your previous workplaces?': 'prev_obs_consequence',
-        'Would you be willing to bring up a physical health issue with a potential employer in an interview?': 'phys_health_interview',
-        'Why or why not?': 'phys_health_interview_why',
-        'Would you bring up a mental health issue with a potential employer in an interview?': 'mental_health_interview',
-        'Why or why not?': 'mental_health_interview_why',
-        'Do you feel that being identified as a person with a mental health issue would hurt your career?': 'career_impact',
-        'Do you think that team members/co-workers would view you more negatively if they knew you suffered from a mental health issue?': 'coworker_perception',
-        'How willing would you be to share with friends and family that you have a mental illness?': 'share_with_family',
-        'Have you observed or experienced an unsupportive or badly handled response to a mental health issue in your current or previous workplace?': 'bad_response_experience',
-        'Have your observations of how another individual who discussed a mental health disorder made you less likely to reveal a mental health issue yourself in your current workplace?': 'observation_impact',
-        'Do you have a family history of mental illness?': 'family_history',
-        'Have you had a mental health disorder in the past?': 'past_disorder',
-        'Do you currently have a mental health disorder?': 'current_disorder',
-        'If yes, what condition(s) have you been diagnosed with?': 'diagnosed_condition',
-        'If maybe, what condition(s) do you believe you have?': 'suspected_condition',
-        'Have you been diagnosed with a mental health condition by a medical professional?': 'professional_diagnosis',
-        'If so, what condition(s) were you diagnosed with?': 'professional_diagnosis_details',
-        'Have you ever sought treatment for a mental health issue from a mental health professional?': 'treatment',
-        'If you have a mental health issue, do you feel that it interferes with your work when being treated effectively?': 'treated_interference',
-        'If you have a mental health issue, do you feel that it interferes with your work when NOT being treated effectively?': 'untreated_interference',
-        'What is your age?': 'age',
-        'What is your gender?': 'gender',
-        'What country do you live in?': 'country',
-        'What US state or territory do you live in?': 'state',
-        'What country do you work in?': 'work_country',
-        'What US state or territory do you work in?': 'work_state',
-        'Which of the following best describes your work position?': 'position',
-        'Do you work remotely?': 'remote_work'
-    }
-    
-    # Apply the column name normalization
-    df_2016 = df_2016.rename(columns=column_mapping)
+
+
 
     return df_2014, df_2016, df_2025
 
@@ -328,37 +324,6 @@ def merge_all_surveys(df_2014, df_2016, df_2025):
     Returns:
         Merged DataFrame with all columns preserved
     """
-    
-    # Create mapping dictionaries for column alignment
-    map_2016_to_2014 = {
-        'what_is_your_age': 'age',
-        'what_is_your_gender': 'gender',
-        'what_country_do_you_live_in': 'country',
-        'are_you_self_employed': 'self_employed',
-        'do_you_have_a_family_history_of_mental_illness': 'family_history',
-        'have_you_ever_sought_treatment_for_a_mental_health_issue_from_a_mental_health_professional': 'treatment',
-        'if_you_have_a_mental_health_issue_do_you_feel_that_it_interferes_with_your_work_when_being_treated_effectively': 'work_interfere',
-        'how_many_employees_does_your_company_or_organization_have': 'no_employees',
-        'do_you_work_remotely': 'remote_work',
-        'is_your_employer_primarily_a_tech_company_organization': 'tech_company',
-        'does_your_employer_provide_mental_health_benefits_as_part_of_healthcare_coverage': 'benefits',
-        'do_you_know_the_options_for_mental_health_care_available_under_your_employer_provided_coverage': 'care_options',
-        'has_your_employer_ever_formally_discussed_mental_health_for_example_as_part_of_a_wellness_campaign_or_other_official_communication': 'wellness_program',
-        'does_your_employer_offer_resources_to_learn_more_about_mental_health_concerns_and_options_for_seeking_help': 'seek_help',
-        'is_your_anonymity_protected_if_you_choose_to_take_advantage_of_mental_health_or_substance_abuse_treatment_resources_provided_by_your_employer': 'anonymity',
-        'if_a_mental_health_issue_prompted_you_to_request_a_medical_leave_from_work_asking_for_that_leave_would_be': 'leave',
-        'do_you_think_that_discussing_a_mental_health_disorder_with_your_employer_would_have_negative_consequences': 'mental_health_consequence',
-        'do_you_think_that_discussing_a_physical_health_issue_with_your_employer_would_have_negative_consequences': 'phys_health_consequence',
-        'would_you_feel_comfortable_discussing_a_mental_health_disorder_with_your_coworkers': 'coworkers',
-        'would_you_feel_comfortable_discussing_a_mental_health_disorder_with_your_direct_supervisor_s': 'supervisor',
-        'would_you_bring_up_a_mental_health_issue_with_a_potential_employer_in_an_interview': 'mental_health_interview',
-        'would_you_be_willing_to_bring_up_a_physical_health_issue_with_a_potential_employer_in_an_interview': 'phys_health_interview',
-        'do_you_feel_that_your_employer_takes_mental_health_as_seriously_as_physical_health': 'mental_vs_physical',
-        'have_you_heard_of_or_observed_negative_consequences_for_co_workers_who_have_been_open_about_mental_health_issues_in_your_workplace': 'obs_consequence'
-    }
-
-    # Reverse mapping to go from 2014 names to 2016 names
-    map_2014_to_2016 = {v: k for k, v in map_2016_to_2014.items()}
 
     # Add year identifiers
     df_2014['survey_year'] = 2014
@@ -387,7 +352,8 @@ def merge_all_surveys(df_2014, df_2016, df_2025):
         ignore_index=True
     )
 
-    return merged_df
+    return merged_df   
+
 '''# Step 5: Data Quality Validation
 def validate_data(df):
     """Validate data quality"""
@@ -408,65 +374,82 @@ def validate_data(df):
     ].shape[0]
 
     return results
-
-def clean_data(df):
-    """Additional cleaning for final dataframe"""
-    # --- Rename columns for clarity
-    rename_map = {
-        "CG_SENG": "Gender_Equality_in_STEM",
-        "CG_VOTO": "Women_Voter_Turnout",
-        "EQ_AIRP": "Air_Pollution_Index",
-        "EQ_WATER": "Water_Quality_Index",
-        "ES_EDUA": "Adult_Education_Level",
-        "ES_EDUEX": "Public_Education_Expenditure",
-        "ES_STCS": "Student_Performance_Score",
-        "HO_BASE": "Access_to_Basic_Housing",
-        "HO_HISH": "High_Housing_Cost_Burden",
-        "HO_NUMR": "Average_Number_of_Rooms",
-        "HS_LEB": "Life_Expectancy",
-        "HS_SFRH": "Self_Reported_Health",
-        "IW_HADI": "Household_Disposable_Income",
-        "IW_HNFW": "Net_Financial_Wealth",
-        "JE_EMPL": "Employment_Rate",
-        "JE_LMIS": "Job_Market_Insecurity",
-        "JE_LTUR": "Long_Term_Unemployment_Rate",
-        "JE_PEARN": "Average_Earnings"
-    }
-
-    df = df.rename(columns=rename_map)
-
-    # --- Convert numerical columns to float ---
-    num_cols = df.select_dtypes(include=["int64", "float64"]).columns.tolist()
-    df[num_cols] = df[num_cols].apply(pd.to_numeric, errors='coerce')
-
-    # --- Handle missing values using KNN Imputer ---
-    imputer = KNNImputer(n_neighbors=3)
-    df[num_cols] = imputer.fit_transform(df[num_cols])
-
-    # --- Normalize numerical features (optional, useful for modeling) ---
-    scaler = StandardScaler()
-    df[num_cols] = scaler.fit_transform(df[num_cols])
-
-    # --- Ensure country and location codes are uppercase and clean ---
-    df['country_code'] = df['country_code'].str.strip().str.upper()
-    df['location_code'] = df['location_code'].str.strip().str.upper()
-
-    return df
 '''
+
+def clean_final_df(final_df):
+    fill_values = {
+        'gender': 'other',  # GENDER_CLEANED
+        'self_employed': 'Unknown',
+        'family_history': 'No',
+        'treatment': 0,
+        'work_interfere': 'Unknown',
+        'no_employees': '1-5',
+        'remote_work': 'No',
+        'tech_company': 'No',
+        'benefits': "Don't know",
+        'care_options': 'Not sure',
+        'wellness_program': "Don't know",
+        'seek_help': "Don't know",
+        'anonymity': "Don't know",
+        'leave': "Don't know",
+        'state':'unknown',
+        'mental_health_consequence': 'Maybe',
+        'phys_health_consequence': 'Maybe',
+        'coworkers': 'Some of them',
+        'supervisor': 'Some of them',
+        'mental_health_interview': 'Maybe',
+        'phys_health_interview': 'Maybe',
+        'mental_vs_physical': "Don't know",
+        'obs_consequence': 'No'
+    }
+    
+    for column, value in fill_values.items():
+        if column in final_df.columns:
+            final_df[column].fillna(value, inplace=True)
+    columns_to_drop = [
+      'share_with_family', 'diagnosed_condition', 'client_impact', 'prev_wellness_program',
+      'coworker_perception', 'mental_health_interview_why', 'professional_diagnosis_details',
+      'suspected_condition', 'work_country',
+      'prev_phys_health_consequence', 'do you work remotely (outside of an office) at least 50% ?',
+      'professional_diagnosis', 'bad_response_experience', 'past_disorder',
+      'do_you_have_medical_coverage_(private_insurance_or_state-provided)_which_includes_treatment_of_ mental_health_issues',
+      'tech_role', 'observation_impact', 'productivity_percentage', 'prev_supervisor',
+      'previous_employers', 'prev_seek_help', 'work_state', 'prev_care_options',
+      'coworker_impact', 'prev_coworkers', 'productivity_affected', 'untreated_interference',
+      'current_disorder', 'prev_benefits', 'prev_mental_health_consequence', 'know_resources',
+      'prev_mental_vs_physical', 'treated_interference', 'reveal_to_coworkers', 'reveal_to_clients',
+      'position', 'prev_anonymity', 'prev_obs_consequence', 'why_or_why_not.1', 'career_impact','do_you_have_medical_coverage_(private_insurance_or_state-provided)_which_includes_treatment_of_ mental_health_issues'
+       ]
+
+    final_df.drop(columns=[col for col in columns_to_drop if col in final_df.columns], inplace=True)
+    
+    return final_df
+
 # Step 6: Save Outputs
-def save_outputs(final_df, df_2025, df_2014, df_2016, prefix=''):
+def save_outputs(final_df, df_2025, df_2014, df_2016, output_dir='.', prefix=''):
+    """
+    Sauvegarde les jeux de données nettoyés et intégrés, ainsi que les métadonnées de traitement.
+
+    Args:
+        final_df (pd.DataFrame): Jeu de données final combiné.
+        df_oecd (pd.DataFrame): Données OCDE nettoyées.
+        df_2014 (pd.DataFrame): Données d’enquête 2014 nettoyées.
+        df_2016 (pd.DataFrame): Données d’enquête 2016 nettoyées.
+        validation_results (dict): Résultats de validation ou d’évaluation des données.
+        output_dir (str): Répertoire de sortie (par défaut: '.').
+        prefix (str): Préfixe facultatif pour tous les noms de fichiers.
+    """
     """Save processed data and metadata"""
     # Create directories if they don't exist
     os.makedirs(DATA_PROCESSED_PATH, exist_ok=True)
     os.makedirs(OUTPUTS_PATH, exist_ok=True)
-    
-    # Save CSV files
+    # Sauvegarde des datasets CSV
     final_df.to_csv(os.path.join(OUTPUTS_PATH, f'{prefix}integrated.csv'), index=False)
     df_2025.to_csv(os.path.join(DATA_PROCESSED_PATH, f'{prefix}cleaned_survey_2025.csv'), index=False)
     df_2014.to_csv(os.path.join(DATA_PROCESSED_PATH, f'{prefix}cleaned_survey_2014.csv'), index=False)
     df_2016.to_csv(os.path.join(DATA_PROCESSED_PATH, f'{prefix}cleaned_survey_2016.csv'), index=False)
 
-    # Save metadata
+    # Sauvegarde des métadonnées
     metadata = {
         'created_date': pd.Timestamp.now().isoformat(),
         'data_sources': [
@@ -480,12 +463,13 @@ def save_outputs(final_df, df_2025, df_2014, df_2016, prefix=''):
             'Data type conversion',
             'Feature engineering',
             'Country-level aggregation'
-        ]    }
+        ]
+    }
 
-    with open(os.path.join(OUTPUTS_PATH, f'{prefix}metadata.json'), 'w') as f:
+    with open(f'{output_dir}/{prefix}metadata.json', 'w') as f:
         json.dump(metadata, f, indent=4)
 
-    print(f"Data and metadata saved to: {OUTPUTS_PATH}")
+    print(f" Data and metadata saved to directory: {output_dir}")
 
 # Main ETL Pipeline
 def run_etl():

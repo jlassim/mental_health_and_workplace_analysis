@@ -376,6 +376,7 @@ def validate_data(df):
     return results
 '''
 
+
 def clean_final_df(final_df):
     fill_values = {
         'gender': 'other',  # GENDER_CLEANED
@@ -505,7 +506,7 @@ def run_etl():
     # Step 4: Data Integration
     print("Merging datasets...")
     final_df = merge_all_surveys(df_2014, df_2016, df_2025)
-
+    final_df=clean_final_df(final_df)
     '''# Additional cleaning
     final_df = clean_data(final_df)
 

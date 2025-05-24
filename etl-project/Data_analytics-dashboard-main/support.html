@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Dashboard - Support</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="logo">
+            <i class="fas fa-brain"></i>
+            <span>MindWell Analytics</span>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="index.html"><i class="fas fa-chart-pie"></i> Overview</a></li>
+                <li><a href="factors.html"><i class="fas fa-user-shield"></i> Personal & Workplace</a></li>
+                <li><a href="support.html" class="active"><i class="fas fa-hands-helping"></i> Support Analysis</a></li>
+                <li><a href="physical-vs-mental.html"><i class="fas fa-heartbeat"></i> Physical vs Mental</a></li>
+            </ul>
+        </nav>
+        <div class="user-profile">
+            <i class="fas fa-user-circle"></i>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="filters">
+                <div class="filter-header">
+                    <h3><i class="fas fa-sliders-h"></i> Filters</h3>
+                </div>
+                <div class="filter-group">
+                    <label for="country-filter"><i class="fas fa-globe"></i> Country</label>
+                    <div class="select-wrapper">
+                        <select id="country-filter" class="filter-select">
+                            <option value="all">All Countries</option>
+                            <!-- Options will be populated by JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label for="gender-filter"><i class="fas fa-venus-mars"></i> Gender</label>
+                    <div class="select-wrapper">
+                        <select id="gender-filter" class="filter-select">
+                            <option value="all">All Genders</option>
+                            <!-- Options will be populated by JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label for="age-range"><i class="fas fa-birthday-cake"></i> Age Range: <span id="age-value">Up to 80</span></label>
+                    <input type="range" id="age-range" min="18" max="80" value="80" class="slider">
+                </div>
+                <div class="filter-buttons">
+                    <button id="apply-filters" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <button id="reset-filters" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <div class="page-header">
+                <h1><i class="fas fa-hands-helping"></i> Mental Health Support Analysis</h1>
+                <p class="subtitle">Exploring workplace support systems and their impact on mental health treatment</p>
+            </div>
+
+            <div class="grid-container">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-hand-holding-medical"></i> Mental Health Benefits</h2>
+                        <div class="card-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Availability of mental health benefits in workplace</span>
+                        </div>
+                    </div>
+                    <div id="benefits-chart" class="chart-container"></div>
+                </div>
+
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-info-circle"></i> Knowledge of Care Options</h2>
+                        <div class="card-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Employee awareness of mental health care options</span>
+                        </div>
+                    </div>
+                    <div id="care-options-chart" class="chart-container"></div>
+                </div>
+
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-spa"></i> Wellness Program Inclusion</h2>
+                        <div class="card-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Inclusion of mental health in wellness programs</span>
+                        </div>
+                    </div>
+                    <div id="wellness-program-chart" class="chart-container"></div>
+                </div>
+
+                <div class="card chart-card wide">
+                    <div class="card-header">
+                        <h2><i class="fas fa-tools"></i> Employer Resources</h2>
+                        <div class="card-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Resources provided by employers for mental health</span>
+                        </div>
+                    </div>
+                    <div id="resources-chart" class="chart-container"></div>
+                </div>
+
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user-secret"></i> Anonymity Protection</h2>
+                        <div class="card-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Protection of anonymity when seeking help</span>
+                        </div>
+                    </div>
+                    <div id="anonymity-chart" class="chart-container"></div>
+                </div>
+
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-procedures"></i> Medical Leave Accessibility</h2>
+                        <div class="card-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Ease of taking medical leave for mental health</span>
+                        </div>
+                    </div>
+                    <div id="leave-chart" class="chart-container"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="common.js"></script>
+    <script src="support.js"></script>
+</body>
+</html>
